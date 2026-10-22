@@ -46,6 +46,8 @@ In the plugin the columns are LEVEL, HANDS, and FEET. They rise quickly and fall
 
 ## Logic Pro
 
+![Drum Doctor in a plug-in window, with the difficulty meters and the problem list](docs/drumdoctor-plugin.png)
+
 Put Drum Doctor in the MIDI FX slot of a software instrument track.
 
 1. Quit Logic completely, then open the project and the Drum Doctor window. Logic keeps an Audio Unit loaded until the app quits. If the old window is still there, use Logic Pro > Settings > Plug-in Manager, select Drum Doctor, choose Reset & Rescan Selection, then quit and reopen.
@@ -56,6 +58,8 @@ Put Drum Doctor in the MIDI FX slot of a software instrument track.
 Starting the analysis while Logic is already playing listens from the current position. Cancel before play leaves the previous result untouched. Dropping a `.mid` file on the window analyses that file instead of the track. A dropped file treats its first bar as bar 1.
 
 ## Standalone
+
+![Drum Doctor standalone, with the lane timeline, difficulty gauge, and problem list](docs/drumdoctor-standalone.png)
 
 The standalone app is the editing view: a lane timeline, the problem list, and the meter. Load a MIDI file, or press Record and play into it, then press Play. Play only moves the cursor and the meter. Open a file from the command line by passing its path.
 
