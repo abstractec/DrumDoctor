@@ -10,12 +10,14 @@ DrumDoctorProcessor::DrumDoctorProcessor()
       apvts (*this, nullptr, "PARAMS", createLayout())
 {
     apvts.addParameterListener ("clusterMs", this);
+    apvts.addParameterListener ("kitMap", this);
 }
 
 DrumDoctorProcessor::~DrumDoctorProcessor()
 {
     cancelPendingUpdate();
     apvts.removeParameterListener ("clusterMs", this);
+    apvts.removeParameterListener ("kitMap", this);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout DrumDoctorProcessor::createLayout()
@@ -33,6 +35,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout DrumDoctorProcessor::createL
         juce::NormalisableRange<float> (-64.0f, 64.0f, 0.25f),
         0.0f,
         juce::AudioParameterFloatAttributes().withLabel ("q")));
+
+    juce::StringArray maps;
+    for (int index = 0; index < static_cast<int> (drumdoctor::KitMap::count); ++index)
+        maps.add (drumdoctor::kitMapName (static_cast<drumdoctor::KitMap> (index)));
+
+    params.push_back (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID { "kitMap", 1 },
+        "MIDI map",
+        maps,
+        0));
     return { params.begin(), params.end() };
 }
 
@@ -123,6 +135,18 @@ double DrumDoctorProcessor::clusterWindowSeconds() const
     return 0.010;
 }
 
+drumdoctor::KitMap DrumDoctorProcessor::currentKitMap() const
+{
+    if (auto* value = apvts.getRawParameterValue ("kitMap"))
+    {
+        const int index = juce::roundToInt (value->load());
+        if (index >= 0 && index < static_cast<int> (drumdoctor::KitMap::count))
+            return static_cast<drumdoctor::KitMap> (index);
+    }
+
+    return drumdoctor::KitMap::generalMidi;
+}
+
 void DrumDoctorProcessor::pushIncoming (const drumdoctor::DrumHit& hit)
 {
     int start1 = 0, size1 = 0, start2 = 0, size2 = 0;
@@ -179,6 +203,7 @@ void DrumDoctorProcessor::reanalyze()
 
     drumdoctor::AnalysisSettings settings;
     settings.clusterWindowSeconds = clusterWindowSeconds();
+    settings.kitMap = currentKitMap();
     auto result = drumdoctor::analyzeHits (hits, score, settings);
     result.loaded = loaded;
 
@@ -359,6 +384,7 @@ drumdoctor::DifficultyPoint DrumDoctorProcessor::meterPoint()
     score.meters = { { 0.0, 4, 4 } };
     drumdoctor::AnalysisSettings settings;
     settings.clusterWindowSeconds = clusterWindowSeconds();
+    settings.kitMap = currentKitMap();
     const auto live = drumdoctor::analyzeHits (std::vector<drumdoctor::DrumHit> (liveHits.begin(), liveHits.end()),
                                                score,
                                                settings);
@@ -367,7 +393,7 @@ drumdoctor::DifficultyPoint DrumDoctorProcessor::meterPoint()
 
 void DrumDoctorProcessor::parameterChanged (const juce::String& parameterID, float)
 {
-    if (parameterID == "clusterMs")
+    if (parameterID == "clusterMs" || parameterID == "kitMap")
         triggerAsyncUpdate();
 }
 

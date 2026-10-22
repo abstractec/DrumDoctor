@@ -29,6 +29,7 @@ juce_add_plugin(DrumDoctor
 
 target_sources(DrumDoctor
     PRIVATE
+        src/analysis/DrumMap.cpp
         src/analysis/PlayabilityAnalyzer.cpp
         src/plugin/PluginProcessor.cpp
         src/plugin/PluginEditor.cpp
@@ -57,6 +58,7 @@ target_link_libraries(DrumDoctor
 
 add_executable(DrumDoctorTests
     tests/PlayabilityTests.cpp
+    src/analysis/DrumMap.cpp
     src/analysis/PlayabilityAnalyzer.cpp)
 
 target_include_directories(DrumDoctorTests PRIVATE src)

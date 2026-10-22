@@ -166,6 +166,68 @@ void testSixteenthNoteDifficulty()
     EXPECT (drumdoctor::bandFor (atOne->difficulty, atOne->impossible) == "Moderate");
 }
 
+int mappedCount (drumdoctor::KitMap map)
+{
+    int count = 0;
+    for (int note = 0; note < 128; ++note)
+        if (drumdoctor::isMappedDrum (note, map))
+            ++count;
+    return count;
+}
+
+void testLibraryMaps()
+{
+    EXPECT (mappedCount (drumdoctor::KitMap::generalMidi) == 22);
+    EXPECT (mappedCount (drumdoctor::KitMap::ezDrummer3) == 125);
+    EXPECT (mappedCount (drumdoctor::KitMap::superiorDrummer3) == 122);
+    EXPECT (mappedCount (drumdoctor::KitMap::addictiveDrums2) == 54);
+    EXPECT (mappedCount (drumdoctor::KitMap::stevenSlate5) == 63);
+    EXPECT (mappedCount (drumdoctor::KitMap::bfd3) == 75);
+    EXPECT (mappedCount (drumdoctor::KitMap::getGoodDrums) == 47);
+
+    EXPECT (drumdoctor::infoForNote (42).closesHat);
+    EXPECT (drumdoctor::infoForNote (36, drumdoctor::KitMap::getGoodDrums).voice == drumdoctor::Voice::tom);
+    EXPECT (drumdoctor::infoForNote (24, drumdoctor::KitMap::getGoodDrums).voice == drumdoctor::Voice::kick);
+    EXPECT (drumdoctor::infoForNote (43, drumdoctor::KitMap::getGoodDrums).closesHat);
+    EXPECT (drumdoctor::infoForNote (70, drumdoctor::KitMap::getGoodDrums).voice == drumdoctor::Voice::cymbal);
+
+    auto analyzeMap = [] (drumdoctor::KitMap map, std::vector<std::pair<double, int>> notes)
+    {
+        drumdoctor::AnalysisSettings settings;
+        settings.kitMap = map;
+        return drumdoctor::analyzeSequence (sequence (notes), 120.0, settings);
+    };
+
+    const auto ggd = analyzeMap (drumdoctor::KitMap::getGoodDrums, { { 0.0, 23 }, { 0.0, 24 }, { 0.0, 43 } });
+    EXPECT (ggd.violations.size() == 1);
+    if (! ggd.violations.empty())
+        EXPECT (ggd.violations.front().footCount == 3);
+
+    const auto ezOpen = drumdoctor::infoForNote (24, drumdoctor::KitMap::ezDrummer3);
+    EXPECT (ezOpen.opensHat);
+    EXPECT (drumdoctor::infoForNote (44, drumdoctor::KitMap::ezDrummer3).voice == drumdoctor::Voice::hatPedal);
+    const auto ezFeet = analyzeMap (drumdoctor::KitMap::ezDrummer3, { { 0.0, 34 }, { 0.0, 36 }, { 0.0, 44 } });
+    EXPECT (ezFeet.violations.size() == 1);
+
+    EXPECT (drumdoctor::infoForNote (61, drumdoctor::KitMap::superiorDrummer3).closesHat);
+    EXPECT (drumdoctor::infoForNote (52, drumdoctor::KitMap::superiorDrummer3).name == std::string ("China"));
+    const auto superior = analyzeMap (drumdoctor::KitMap::superiorDrummer3, { { 0.0, 35 }, { 0.0, 36 }, { 0.0, 61 } });
+    EXPECT (superior.violations.size() == 1);
+
+    EXPECT (drumdoctor::infoForNote (42, drumdoctor::KitMap::addictiveDrums2).voice == drumdoctor::Voice::sideStick);
+    EXPECT (drumdoctor::infoForNote (51, drumdoctor::KitMap::addictiveDrums2).closesHat);
+    const auto addictive = analyzeMap (drumdoctor::KitMap::addictiveDrums2, { { 0.0, 36 }, { 0.0, 51 } });
+    EXPECT (addictive.violations.empty());
+
+    EXPECT (drumdoctor::infoForNote (36, drumdoctor::KitMap::bfd3).voice == drumdoctor::Voice::tom);
+    EXPECT (drumdoctor::infoForNote (24, drumdoctor::KitMap::bfd3).voice == drumdoctor::Voice::kick);
+    EXPECT (drumdoctor::infoForNote (32, drumdoctor::KitMap::bfd3).voice == drumdoctor::Voice::hatPedal);
+
+    EXPECT (drumdoctor::infoForNote (42, drumdoctor::KitMap::stevenSlate5).closesHat);
+    EXPECT (drumdoctor::infoForNote (63, drumdoctor::KitMap::stevenSlate5).opensHat);
+    EXPECT (drumdoctor::infoForNote (44, drumdoctor::KitMap::stevenSlate5).voice == drumdoctor::Voice::hatPedal);
+}
+
 void testMidiRoundTrip()
 {
     const std::vector<drumdoctor::DrumHit> hits {
@@ -229,6 +291,7 @@ int main (int argc, char** argv)
     testFlamIsNotAChord();
     testEmptyAndUnmapped();
     testSixteenthNoteDifficulty();
+    testLibraryMaps();
     testMidiRoundTrip();
 
     if (argc > 2 && std::string (argv[1]) == "--fixture")

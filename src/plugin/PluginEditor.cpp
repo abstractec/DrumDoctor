@@ -24,7 +24,8 @@ DrumDoctorEditor::DrumDoctorEditor (DrumDoctorProcessor& processorIn)
 
     clusterLabel.setText ("Cluster ms", juce::dontSendNotification);
     offsetLabel.setText ("Playhead offset", juce::dontSendNotification);
-    for (auto* label : { &clusterLabel, &offsetLabel })
+    kitMapLabel.setText ("MIDI map", juce::dontSendNotification);
+    for (auto* label : { &clusterLabel, &offsetLabel, &kitMapLabel })
     {
         label->setFont (drumdoctor::palette::font (12.0f));
         label->setColour (juce::Label::textColourId, drumdoctor::palette::muted());
@@ -36,11 +37,14 @@ DrumDoctorEditor::DrumDoctorEditor (DrumDoctorProcessor& processorIn)
     styleButton (playButton);
     styleSlider (clusterSlider);
     styleSlider (offsetSlider);
+    styleMapBox();
 
     addAndMakeVisible (title);
     addAndMakeVisible (status);
     addAndMakeVisible (clusterLabel);
     addAndMakeVisible (offsetLabel);
+    addAndMakeVisible (kitMapLabel);
+    addAndMakeVisible (kitMapBox);
     addAndMakeVisible (loadButton);
     addAndMakeVisible (recordButton);
     addAndMakeVisible (playButton);
@@ -54,6 +58,8 @@ DrumDoctorEditor::DrumDoctorEditor (DrumDoctorProcessor& processorIn)
         drum.apvts, "clusterMs", clusterSlider);
     offsetAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
         drum.apvts, "ppqOffset", offsetSlider);
+    kitMapAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (
+        drum.apvts, "kitMap", kitMapBox);
 
     loadButton.onClick = [this]
     {
@@ -117,8 +123,8 @@ DrumDoctorEditor::DrumDoctorEditor (DrumDoctorProcessor& processorIn)
         for (auto* control : hidden)
             control->setVisible (false);
 
-        setResizeLimits (320, 620, 560, 1100);
-        setSize (380, 760);
+        setResizeLimits (320, 660, 560, 1100);
+        setSize (380, 800);
     }
     else
     {
@@ -175,6 +181,15 @@ void DrumDoctorEditor::styleButton (juce::TextButton& button)
     button.setColour (juce::TextButton::textColourOnId, drumdoctor::palette::background());
 }
 
+void DrumDoctorEditor::styleMapBox()
+{
+    kitMapBox.setColour (juce::ComboBox::backgroundColourId, drumdoctor::palette::background());
+    kitMapBox.setColour (juce::ComboBox::textColourId, drumdoctor::palette::ink());
+    kitMapBox.setColour (juce::ComboBox::outlineColourId, drumdoctor::palette::line());
+    kitMapBox.setColour (juce::ComboBox::arrowColourId, drumdoctor::palette::amber());
+    kitMapLabel.setJustificationType (juce::Justification::centredLeft);
+}
+
 void DrumDoctorEditor::styleSlider (juce::Slider& slider)
 {
     slider.setSliderStyle (juce::Slider::LinearHorizontal);
@@ -209,8 +224,12 @@ void DrumDoctorEditor::resized()
     if (isHostedPlugin())
     {
         auto area = getLocalBounds().reduced (12);
-        auto strip = area.removeFromTop (132);
+        auto strip = area.removeFromTop (176);
         recordButton.setBounds (strip.removeFromTop (40));
+        strip.removeFromTop (8);
+        auto mapRow = strip.removeFromTop (28);
+        kitMapLabel.setBounds (mapRow.removeFromLeft (78));
+        kitMapBox.setBounds (mapRow);
         promptBounds = strip.reduced (2, 8);
         meter.setBounds (area.removeFromTop (juce::jmax (220, area.getHeight() * 46 / 100)).reduced (0, 4));
         violations.setBounds (area.reduced (0, 4));
@@ -229,6 +248,8 @@ void DrumDoctorEditor::resized()
     loadButton.setBounds (titleRow.removeFromRight (84).reduced (4, 4));
     status.setBounds (titleRow.reduced (8, 6));
 
+    kitMapLabel.setBounds (header.removeFromLeft (72));
+    kitMapBox.setBounds (header.removeFromLeft (210).reduced (4, 8));
     clusterLabel.setBounds (header.removeFromLeft (78));
     clusterSlider.setBounds (header.removeFromLeft (230).reduced (4, 6));
     offsetLabel.setBounds (header.removeFromLeft (110));
@@ -379,7 +400,7 @@ void DrumDoctorEditor::updatePluginChrome()
     else if (snapshot->hits.empty())
     {
         buttonText = "Analyse again";
-        prompt = "No drum-kit notes in this pass. Drum Doctor reads a General MIDI kit.";
+        prompt = "No drum-kit notes for the selected MIDI map.";
         colour = drumdoctor::palette::amber();
         empty = "No kit notes.";
     }
@@ -435,7 +456,7 @@ void DrumDoctorEditor::updateStatus()
         if (snapshot == nullptr || ! snapshot->loaded)
             text = "Drop a MIDI file, or record from the host";
         else if (snapshot->hits.empty())
-            text = "No General MIDI kit notes";
+            text = "No kit notes for this MIDI map";
         else if (snapshot->violations.empty())
         {
             text = "Playable";

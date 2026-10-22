@@ -124,6 +124,7 @@ AnalysisResult analyzeHits (const std::vector<DrumHit>& hits,
                             const AnalysisSettings& settings)
 {
     AnalysisResult result;
+    result.kitMap = settings.kitMap;
     result.score = score.tempos.empty() ? ScoreMap {} : score;
     if (result.score.meters.empty())
         result.score.meters.push_back ({ 0.0, 4, 4 });
@@ -134,7 +135,7 @@ AnalysisResult analyzeHits (const std::vector<DrumHit>& hits,
     mapped.reserve (hits.size());
     for (const auto& hit : hits)
     {
-        if (! isMappedDrum (hit.note))
+        if (! isMappedDrum (hit.note, settings.kitMap))
         {
             ++result.ignoredNotes;
             continue;
@@ -191,7 +192,7 @@ AnalysisResult analyzeHits (const std::vector<DrumHit>& hits,
 
         for (const int note : cluster.notes)
         {
-            const auto info = infoForNote (note);
+            const auto info = infoForNote (note, settings.kitMap);
             if (info.hand)
             {
                 ++hands;

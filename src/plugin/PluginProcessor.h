@@ -66,6 +66,7 @@ private:
     bool ingestMidi (const juce::MemoryBlock& bytes);
     void pushIncoming (const drumdoctor::DrumHit& hit);
     double clusterWindowSeconds() const;
+    drumdoctor::KitMap currentKitMap() const;
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 

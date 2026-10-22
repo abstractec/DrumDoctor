@@ -40,6 +40,7 @@ struct ScoreMap
 struct AnalysisSettings
 {
     double clusterWindowSeconds = 0.010;
+    KitMap kitMap = KitMap::generalMidi;
 };
 
 struct Violation
@@ -65,6 +66,7 @@ struct DifficultyPoint
 struct AnalysisResult
 {
     bool loaded = false;
+    KitMap kitMap = KitMap::generalMidi;
     double startPpq = 0.0;
     double endPpq = 0.0;
     int ignoredNotes = 0;

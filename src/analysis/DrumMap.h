@@ -28,6 +28,18 @@ enum class Lane
     cymbals
 };
 
+enum class KitMap : int
+{
+    generalMidi = 0,
+    ezDrummer3,
+    superiorDrummer3,
+    addictiveDrums2,
+    stevenSlate5,
+    bfd3,
+    getGoodDrums,
+    count
+};
+
 struct VoiceInfo
 {
     Voice voice = Voice::unmapped;
@@ -39,54 +51,28 @@ struct VoiceInfo
     const char* name = nullptr;
 };
 
-inline VoiceInfo infoForNote (int note) noexcept
+VoiceInfo infoForNote (int note, KitMap map = KitMap::generalMidi) noexcept;
+
+inline bool isMappedDrum (int note, KitMap map = KitMap::generalMidi) noexcept
 {
-    switch (note)
-    {
-        case 35:
-        case 36:
-            return { Voice::kick, Lane::feet, false, true, false, false, "Kick" };
-        case 37:
-            return { Voice::sideStick, Lane::snare, true, false, false, false, "Side Stick" };
-        case 38:
-        case 40:
-            return { Voice::snare, Lane::snare, true, false, false, false, "Snare" };
-        case 41:
-        case 43:
-        case 45:
-        case 47:
-        case 48:
-        case 50:
-            return { Voice::tom, Lane::toms, true, false, false, false, "Tom" };
-        case 42:
-            return { Voice::closedHat, Lane::hat, true, false, true, false, "Closed Hi-Hat" };
-        case 44:
-            return { Voice::hatPedal, Lane::feet, false, true, false, false, "Hi-Hat Pedal" };
-        case 46:
-            return { Voice::openHat, Lane::hat, true, false, false, true, "Open Hi-Hat" };
-        case 49:
-        case 57:
-            return { Voice::cymbal, Lane::cymbals, true, false, false, false, "Crash" };
-        case 51:
-            return { Voice::cymbal, Lane::cymbals, true, false, false, false, "Ride" };
-        case 52:
-            return { Voice::cymbal, Lane::cymbals, true, false, false, false, "China" };
-        case 53:
-            return { Voice::cymbal, Lane::cymbals, true, false, false, false, "Ride Bell" };
-        case 55:
-            return { Voice::cymbal, Lane::cymbals, true, false, false, false, "Splash" };
-        case 56:
-            return { Voice::cowbell, Lane::cymbals, true, false, false, false, "Cowbell" };
-        case 59:
-            return { Voice::cymbal, Lane::cymbals, true, false, false, false, "Ride" };
-        default:
-            return {};
-    }
+    return infoForNote (note, map).voice != Voice::unmapped;
 }
 
-inline bool isMappedDrum (int note) noexcept
+inline const char* kitMapName (KitMap map) noexcept
 {
-    return infoForNote (note).voice != Voice::unmapped;
+    switch (map)
+    {
+        case KitMap::generalMidi: return "General MIDI";
+        case KitMap::ezDrummer3: return "EZdrummer 3";
+        case KitMap::superiorDrummer3: return "Superior Drummer 3";
+        case KitMap::addictiveDrums2: return "Addictive Drums 2";
+        case KitMap::stevenSlate5: return "Steven Slate SSD5";
+        case KitMap::bfd3: return "BFD3";
+        case KitMap::getGoodDrums: return "GetGood Drums";
+        case KitMap::count: break;
+    }
+
+    return "General MIDI";
 }
 
 inline int laneCount() noexcept

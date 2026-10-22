@@ -30,6 +30,7 @@ private:
     bool isHostedPlugin() const;
     static void styleButton (juce::TextButton& button);
     static void styleSlider (juce::Slider& slider);
+    void styleMapBox();
 
     DrumDoctorProcessor& drum;
     std::shared_ptr<const drumdoctor::AnalysisResult> snapshot;
@@ -48,13 +49,16 @@ private:
     juce::Label status;
     juce::Label clusterLabel;
     juce::Label offsetLabel;
+    juce::Label kitMapLabel;
     juce::TextButton loadButton { "Load" };
     juce::TextButton recordButton { "Record" };
     juce::TextButton playButton { "Play" };
     juce::Slider clusterSlider;
     juce::Slider offsetSlider;
+    juce::ComboBox kitMapBox;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> clusterAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> offsetAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> kitMapAttachment;
     TimelineComponent timeline;
     DifficultyMeterComponent meter;
     ViolationListComponent violations;

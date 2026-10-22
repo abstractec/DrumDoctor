@@ -17,10 +17,12 @@ Inside a chord:
 
 - At most two hands. Three cymbals, or a snare plus two toms, is impossible.
 - At most two feet. Two kicks under a still-closed hi-hat are impossible, because the hat already occupies a foot.
-- A closed hi-hat (note 42) is a hand and also puts the hat foot down until an open hi-hat (note 46).
-- A pedal chick (note 44) is that same foot for the chord it lands on. It does not leave the hat closed.
+- A closed hi-hat is a hand and also puts the hat foot down until an open hi-hat. On the General MIDI map those notes are 42 and 46.
+- A pedal chick is that same foot for the chord it lands on. It does not leave the hat closed. On the General MIDI map that note is 44.
 
-Anything outside the kit map is ignored and counted, including pitched notes.
+Anything outside the selected map is ignored and counted, including pitched notes. The MIDI map menu chooses which plug-in the part was written for. The limb rules stay the same. A closed, tight, or CC hi-hat still holds a foot until an open or loose hat. A pedal chick, including a pedal splash, uses the hat foot for that chord only.
+
+The note numbers below are General MIDI. EZdrummer 3, Superior Drummer 3, Addictive Drums 2, Steven Slate SSD5, BFD3, and GetGood Drums each use their own numbers. In GetGood Drums and BFD3, for example, the kick is not note 36.
 
 | Notes | Voice | Limb |
 | --- | --- | --- |

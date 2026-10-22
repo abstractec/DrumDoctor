@@ -156,7 +156,7 @@ void TimelineComponent::paint (juce::Graphics& g)
             if (x < plot.getX() - 8.0f || x > plot.getRight() + 8.0f)
                 continue;
 
-            const auto info = drumdoctor::infoForNote (hit.note);
+            const auto info = drumdoctor::infoForNote (hit.note, analysis->kitMap);
             const int laneIndex = static_cast<int> (info.lane);
             const float y = plot.getY() + laneHeight * static_cast<float> (laneIndex) + laneHeight * 0.5f - 5.0f;
 
@@ -195,7 +195,7 @@ void TimelineComponent::paint (juce::Graphics& g)
     {
         g.setColour (drumdoctor::palette::muted());
         g.setFont (drumdoctor::palette::font (16.0f));
-        g.drawText ("No General MIDI kit notes in this file", plot, juce::Justification::centred);
+        g.drawText ("No kit notes for this MIDI map", plot, juce::Justification::centred);
     }
 }
 
