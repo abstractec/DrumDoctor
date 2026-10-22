@@ -268,7 +268,9 @@ AnalysisResult analyzeHits (const std::vector<DrumHit>& hits,
     }
 
     const double firstPpq = summaries.empty() ? 0.0 : summaries.front().ppq;
-    const double lastPpq = summaries.empty() ? 0.0 : summaries.back().ppq;
+    double lastPpq = summaries.empty() ? 0.0 : summaries.back().ppq;
+    if (settings.curveEndPpq > lastPpq)
+        lastPpq = settings.curveEndPpq;
     constexpr double stepsPerQuarter = 16.0;
     const int startStep = static_cast<int> (std::floor (firstPpq * stepsPerQuarter + 1.0e-9));
     const int endStep = static_cast<int> (std::ceil (lastPpq * stepsPerQuarter - 1.0e-9));

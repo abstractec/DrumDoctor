@@ -16,6 +16,7 @@ struct DrumHit
     double timeSeconds = 0.0;
     double ppq = 0.0;
     int note = 0;
+    double receivedMs = 0.0;
 };
 
 struct TempoChange
@@ -41,6 +42,7 @@ struct AnalysisSettings
 {
     double clusterWindowSeconds = 0.010;
     KitMap kitMap = KitMap::generalMidi;
+    double curveEndPpq = -1.0e9;
 };
 
 struct Violation

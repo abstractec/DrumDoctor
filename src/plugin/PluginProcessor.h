@@ -67,6 +67,7 @@ private:
     void pushIncoming (const drumdoctor::DrumHit& hit);
     double clusterWindowSeconds() const;
     drumdoctor::KitMap currentKitMap() const;
+    drumdoctor::DifficultyPoint hostedLiveMeter();
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 

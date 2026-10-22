@@ -105,6 +105,7 @@ void DrumDoctorProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         }
     }
 
+    const double blockMs = juce::Time::getMillisecondCounterHiRes();
     for (const auto metadata : midi)
     {
         const auto message = metadata.getMessage();
@@ -116,6 +117,7 @@ void DrumDoctorProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         hit.note = message.getNoteNumber();
         hit.ppq = blockPpq + delta * bpm / 60.0;
         hit.timeSeconds = blockSeconds + delta;
+        hit.receivedMs = blockMs + delta * 1000.0;
         pushIncoming (hit);
     }
 
@@ -176,9 +178,6 @@ void DrumDoctorProcessor::drainIncoming()
     const bool record = capturing.load();
     for (const auto& hit : batch)
     {
-        if (! liveHits.empty() && hit.ppq + 0.5 < liveHits.back().ppq)
-            liveHits.clear();
-
         liveHits.push_back (hit);
         if (record && captureHits.size() < 200000)
             captureHits.push_back (hit);
@@ -186,6 +185,9 @@ void DrumDoctorProcessor::drainIncoming()
 
     const double cutoff = liveHits.empty() ? 0.0 : liveHits.back().timeSeconds - 2.0;
     while (! liveHits.empty() && liveHits.front().timeSeconds < cutoff)
+        liveHits.pop_front();
+
+    while (liveHits.size() > 512)
         liveHits.pop_front();
 }
 
@@ -359,8 +361,48 @@ uint32_t DrumDoctorProcessor::getAnalysisGeneration() const
     return generation;
 }
 
+drumdoctor::DifficultyPoint DrumDoctorProcessor::hostedLiveMeter()
+{
+    const double nowMs = juce::Time::getMillisecondCounterHiRes();
+    while (! liveHits.empty() && (liveHits.front().receivedMs <= 0.0 || nowMs - liveHits.front().receivedMs > 2000.0))
+        liveHits.pop_front();
+
+    if (liveHits.empty())
+        return {};
+
+    double bpm = playbackBpm.load();
+    if (hostValid.load())
+        bpm = hostBpm.load();
+    bpm = std::max (1.0, bpm);
+
+    constexpr double anchor = 16.0;
+    std::vector<drumdoctor::DrumHit> hits;
+    hits.reserve (liveHits.size());
+    for (const auto& hit : liveHits)
+    {
+        auto timed = hit;
+        const double ageSeconds = std::max (0.0, (nowMs - hit.receivedMs) * 0.001);
+        timed.timeSeconds = anchor * 60.0 / bpm - ageSeconds;
+        timed.ppq = anchor - ageSeconds * bpm / 60.0;
+        hits.push_back (timed);
+    }
+
+    drumdoctor::ScoreMap score;
+    score.tempos = { { 0.0, bpm } };
+    score.meters = { { 0.0, 4, 4 } };
+    drumdoctor::AnalysisSettings settings;
+    settings.clusterWindowSeconds = clusterWindowSeconds();
+    settings.kitMap = currentKitMap();
+    settings.curveEndPpq = anchor;
+    const auto live = drumdoctor::analyzeHits (hits, score, settings);
+    return drumdoctor::sampleCurve (live.curve, anchor);
+}
+
 drumdoctor::DifficultyPoint DrumDoctorProcessor::meterPoint()
 {
+    if (wrapperType != juce::AudioProcessor::wrapperType_Standalone)
+        return hostedLiveMeter();
+
     bool loaded = false;
     std::shared_ptr<const drumdoctor::AnalysisResult> snapshot;
     {

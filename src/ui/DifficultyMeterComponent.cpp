@@ -10,7 +10,7 @@ void holdPeak (float& peak, float shown)
     if (shown >= peak)
         peak = shown;
     else
-        peak = juce::jmax (0.0f, peak - 0.008f);
+        peak = juce::jmax (0.0f, peak - 0.03f);
 }
 
 void smoothToward (float& shown, float target, float dtSeconds)

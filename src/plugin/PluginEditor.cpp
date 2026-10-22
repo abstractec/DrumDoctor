@@ -58,6 +58,9 @@ DrumDoctorEditor::DrumDoctorEditor (DrumDoctorProcessor& processorIn)
         drum.apvts, "clusterMs", clusterSlider);
     offsetAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
         drum.apvts, "ppqOffset", offsetSlider);
+    for (int index = 0; index < static_cast<int> (drumdoctor::KitMap::count); ++index)
+        kitMapBox.addItem (drumdoctor::kitMapName (static_cast<drumdoctor::KitMap> (index)), index + 1);
+
     kitMapAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (
         drum.apvts, "kitMap", kitMapBox);
 
